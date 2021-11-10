@@ -6,7 +6,7 @@ Overview of transformation steps;
 2.	Union of countries field from vaccine csv and case numbers csv --> get distinct countries
 3.	Input continent for each country manually, generate csv with schema (country, continent)
 4.	Join cases csv by country each entry now has a continent 
-5.	Group by (date, continent); relation will have schema [(date, continent),{(confirmed_cases, deaths, recovered)}]
+5.	Group by (date, continent); relation will have schema [(date, continent),{(country, confirmed_cases, deaths, recovered)}]
 6.	For each (date, continent) sum {(deaths)} as deaths
 7.	Repeat for confimed_cases and recovered
 8.	So we now have (date, continent, confirmed_cases, deaths, recovered) for each (date, continent) pair
