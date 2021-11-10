@@ -11,7 +11,7 @@ Overview of transformation steps;
 7.	Repeat for confimed_cases and recovered
 8.	So we now have (date, continent, confirmed_cases, deaths, recovered) for each (date, continent) pair
 9.	Do steps 4-8 for vaccination numbers/population
-10.	We now also have (date, continent, partially vaccinated, Fully_vaccinated, Population) for each (date, continent) pair
+10.	We now also have (date, continent, partially_vaccinated, Fully_vaccinated, Population) for each (date, continent) pair
 11.	Left outer join Continent_Cases with Continent_Vaccination_populatiuon by (date, continent)
-12.	We now have [(date, continent)], confirmed_cases, deaths, recovered, Continent_partially vaccinated, Continent_Fully_Vaccinated
+12.	We now have [(date, continent)], confirmed_cases, deaths, recovered, partially_vaccinated, Fully_Vaccinated for each (date, continent) pair
 13.	To get separate CSVs; filter by continent the store to CSV
