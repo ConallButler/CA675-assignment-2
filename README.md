@@ -3,7 +3,7 @@
 Overview of transformation steps;
 
 1.	Filter cases data by case type; create different relation for each case type then do a join by (date, country) to get the three case types in a single relation
-2.	Union of countries field from vaccine csv and case numbers csv  get distinct countries
+2.	Union of countries field from vaccine csv and case numbers csv --> get distinct countries
 3.	Input continent for each country manually, generate csv with schema (country, continent)
 4.	Join cases csv by country each entry now has a continent 
 5.	Group by (date, continent); relation will have schema [(date, continent),{(country, confirmed_cases, deaths, recovered)}]
