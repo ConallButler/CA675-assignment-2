@@ -71,14 +71,32 @@ group::continent AS continent, group::date AS date, confirmed_cases, deaths, rec
 STORE Cases_count_continent INTO 'CA675-Assignment-2/csv/Cases_count_continent5' USING org.apache.pig.piggybank.storage.CSVExcelStorage(',' ,'NO_MULTILINE' ,'UNIX', 'WRITE_OUTPUT_HEADER');
  
 --Partially and fully vaccinated by Continent, date
---this section is not finished
 
 VaccineCSV = LOAD 'CA675-Assignment-2/csv/covid19_vaccine.csv' USING org.apache.pig.piggybank.storage.CSVExcelStorage(',', 'NO_MULTILINE', 'WINDOWS', 'SKIP_INPUT_HEADER') AS (country:chararray, date:chararray, doses:int, people_partially_vaccinated:int, people_fully_vaccinated:int, report_date_string:chararray, uid:int, province_state:chararray, iso2:chararray, iso3:chararray, code3:int, fips:chararray, lat:chararray, long:chararray, combined_key:chararray, population:int, continent_name:chararray, continent_code:chararray);
 Countries_continents = Load 'CA675-Assignment-2/csv/Distinct_Countries_Continents.csv' USING org.apache.pig.piggybank.storage.CSVExcelStorage(',', 'NO_MULTILINE', 'WINDOWS', 'SKIP_INPUT_HEADER') AS (country:chararray, continent:chararray);
 
 --generate required fields
-Vaccine_Pruned = FOREACH VaccineCSV generate country, doses, people_partially_vaccinated, people_fully_vaccinated, population, ToDate(date, 'dd/MM/yyyy') as (Formatted_Date:DateTime);
+Vaccine_Pruned = FOREACH VaccineCSV generate country, doses, people_partially_vaccinated, people_fully_vaccinated, population, ToDate(date, 'yyyy-MM-dd') as (date:DateTime);
 Vaccine_continent_join = JOIN Vaccine_Pruned BY country, Countries_continents BY country;
 
-Vaccines_grouped_continent = GROUP Vaccine_continent_join
+Vaccines_grouped_continent = GROUP Vaccine_continent_join BY (continent, date);
+Vaccine_count_continent_flattened =  FOREACH Vaccines_grouped_continent GENERATE FLATTEN(group),
+SUM (Vaccine_continent_join.people_partially_vaccinated) AS partially_vaccinated,
+SUM (Vaccine_continent_join.people_fully_vaccinated) AS fully_vaccinated,
+SUM (Vaccine_continent_join.population) AS population;
+Vaccine_count_continent = FOREACH Vaccine_count_continent_flattened GENERATE group::Countries_continents::continent AS continent, 
+group::Vaccine_Pruned::date AS date, 
+partially_vaccinated, fully_vaccinated, population;
+Store Vaccine_count_continent INTO 'CA675-Assignment-2/csv/Vaccine_count_continent2' USING org.apache.pig.piggybank.storage.CSVExcelStorage(',' ,'NO_MULTILINE' ,'UNIX', 'WRITE_OUTPUT_HEADER');
+ 
+--Vaccine and cases date joined
+Cases = LOAD 'CA675-Assignment-2/csv/Cases_count_continent5'  USING org.apache.pig.piggybank.storage.CSVExcelStorage(',', 'NO_MULTILINE', 'WINDOWS', 'SKIP_INPUT_HEADER') AS (continent:chararray, date:DateTime, confirmed_cases:int, deaths:int, recovered:int);
+Vaccines = LOAD 'CA675-Assignment-2/csv/Vaccine_count_continent2' USING org.apache.pig.piggybank.storage.CSVExcelStorage(',', 'NO_MULTILINE', 'WINDOWS', 'SKIP_INPUT_HEADER')  AS (continent:chararray, date:DateTime, partially_vaccinated:int, fully_vaccinated:int, population:int);
+Cases_vaccines_join = Join Cases by (date, continent)LEFT OUTER, Vaccines by (date, continent);
+
+Cases_Vaccines = FOREACH Cases_vaccines_join GENERATE Cases::continent as continent, Cases::date as date, Cases::confirmed_cases as confirmed_cases, Cases::deaths as deaths, Cases::recovered as recovered, Vaccines::partially_vaccinated as partially_vaccinated, Vaccines::fully_vaccinated as fully_vaccinated, Vaccines::population as population;
+
+Store Cases_Vaccines  INTO 'CA675-Assignment-2/csv/Cases_vaccines_by_date_continent1' USING org.apache.pig.piggybank.storage.CSVExcelStorage(',' ,'NO_MULTILINE' ,'UNIX', 'WRITE_OUTPUT_HEADER');
+
+
 
